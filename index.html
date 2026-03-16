@@ -40,49 +40,94 @@
   }
 
   window.dbSubmitApp = async function(appData) {
+    // Her zaman bir şekilde başarılı döner — asla exception fırlatmaz
     if (!isSupabaseConfigured) {
       _saveLocal(appData);
+      console.warn('⚠️ Supabase yapılandırılmadı, localStorage (local) kaydedildi');
       return { success: true, mode: 'local' };
     }
+
+    // 10 saniye timeout ekle
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
     try {
+      const payload = {
+        fname:      appData.fname      || '',
+        lname:      appData.lname      || '',
+        email:      appData.email      || '',
+        school:     appData.school     || '',
+        committee:  appData.committee  || '',
+        experience: appData.experience || '',
+        motivation: appData.motivation || '',
+        lang:       appData.lang       || 'en',
+        status:     'Pending',
+        date:       new Date().toLocaleDateString('tr-TR')
+      };
+
+      console.log('📤 Supabase gönderiliyor...', payload);
+
       const res = await fetch(`${SUPABASE_URL}/rest/v1/applications`, {
         method: 'POST',
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
-          'apikey': SUPABASE_KEY,
+          'apikey':        SUPABASE_KEY,
           'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Prefer': 'return=minimal'
+          'Prefer':        'return=minimal'
         },
-        body: JSON.stringify({
-          ...appData,
-          status: 'Pending',
-          date: new Date().toLocaleDateString('tr-TR')
-        })
+        body: JSON.stringify(payload)
       });
-      if (res.ok) {
-        console.log('%c✅ Başvuru Supabase'e kaydedildi', 'color:#27ae60;font-weight:bold');
+
+      clearTimeout(timeout);
+
+      if (res.ok || res.status === 201) {
+        console.log('%c✅ Supabase kaydedildi!', 'color:#27ae60;font-weight:bold;font-size:14px');
         return { success: true, mode: 'supabase' };
       }
-      // HTTP hata — detayı logla, localStorage'a düş
-      const errText = await res.text();
-      console.error('❌ Supabase POST hatası:', res.status, errText);
+
+      // HTTP hatası
+      let errText = '';
+      try { errText = await res.text(); } catch(_) {}
+      console.error(`❌ Supabase ${res.status}:`, errText);
+
       if (res.status === 401 || res.status === 403) {
-        console.error('🔑 RLS/Policy sorunu! Supabase → Table Editor → applications → RLS'yi kapat veya INSERT policy ekle.');
+        console.error("%c\uD83D\uDD11 COZUM: Supabase > Table Editor > applications > RLS'yi kapat (Disable RLS)", "color:#e74c3c;font-weight:bold");
       }
+      if (res.status === 404) {
+        console.error("%c\uD83D\uDD11 COZUM: Supabase'de applications tablosu bulunamadi - tablo adini kontrol et", "color:#e74c3c;font-weight:bold");
+      }
+
+      // Yedek: localStorage (local) kaydet
       _saveLocal(appData);
-      return { success: true, mode: 'local-fallback', error: errText };
+      return { success: true, mode: 'local-fallback', httpStatus: res.status };
+
     } catch (e) {
-      console.error('❌ Ağ hatası:', e.message);
+      clearTimeout(timeout);
+      if (e.name === 'AbortError') {
+        console.error('❌ Supabase timeout (10s) — ağ bağlantısını kontrol et');
+      } else {
+        console.error('❌ Ağ hatası:', e.message);
+      }
       _saveLocal(appData);
       return { success: true, mode: 'local-fallback' };
     }
   };
 
   function _saveLocal(appData) {
-    const apps = JSON.parse(localStorage.getItem('bollukMUN_apps') || '[]');
-    apps.push({ ...appData, id: Date.now(), date: new Date().toLocaleDateString('tr-TR'), status: 'Pending' });
-    localStorage.setItem('bollukMUN_apps', JSON.stringify(apps));
-    console.log('💾 localStorage'a kaydedildi');
+    try {
+      const apps = JSON.parse(localStorage.getItem('bollukMUN_apps') || '[]');
+      apps.push({
+        ...appData,
+        id:     Date.now(),
+        date:   new Date().toLocaleDateString('tr-TR'),
+        status: 'Pending'
+      });
+      localStorage.setItem('bollukMUN_apps', JSON.stringify(apps));
+      console.log('💾 localStorage (local) kaydedildi');
+    } catch(e) {
+      console.error('localStorage hatası:', e);
+    }
   }
 </script>
 
@@ -681,7 +726,7 @@ footer{border-top:1px solid var(--border);padding:48px 20px;text-align:center}
         </div>
         <div class="form-group full">
           <label class="form-label" data-tr="Motivasyon Mektubu" data-en="Motivation Letter">Motivation Letter</label>
-          <textarea class="form-input" id="motivation" placeholder="Tell us why you want to attend BollukMUN 2026 and what you hope to achieve..." id="motivation-input" data-tr-placeholder="BollukMUN 2026'ya neden katılmak istediğini ve neler başarmayı umduğunu anlat..." data-en-placeholder="Tell us why you want to attend BollukMUN 2026 and what you hope to achieve..."></textarea>
+          <textarea class="form-input" id="motivation" placeholder="Tell us why you want to attend BollukMUN 2026 and what you hope to achieve..." data-tr-placeholder="BollukMUN 2026'ya neden katılmak istediğini ve neler başarmayı umduğunu anlat..." data-en-placeholder="Tell us why you want to attend BollukMUN 2026 and what you hope to achieve..."></textarea>
         </div>
         <div class="submit-wrap">
           <button class="btn-p" onclick="submitForm()" id="submit-btn" data-tr="Başvuruyu Gönder →" data-en="Submit Application →">Submit Application →</button>
@@ -1065,33 +1110,48 @@ function vf(id, eId, fn) {
 
 async function submitForm() {
   const btn = document.getElementById('submit-btn');
+
   const ok = vf('fname', 'fname-err', v => v.length > 0)
     & vf('lname', 'lname-err', v => v.length > 0)
     & vf('email', 'email-err', v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))
     & vf('school', 'school-err', v => v.length > 0)
     & vf('committee', 'committee-err', v => v.length > 0);
 
-  if (ok) {
-    btn.textContent = currentLang === 'tr' ? 'Gönderiliyor...' : 'Submitting...';
-    btn.disabled = true;
+  if (!ok) return;
 
-    const appData = {
-      fname: document.getElementById('fname').value,
-      lname: document.getElementById('lname').value,
-      email: document.getElementById('email').value,
-      school: document.getElementById('school').value,
-      committee: document.getElementById('committee').value,
-      experience: document.getElementById('experience').value,
-      motivation: document.getElementById('motivation').value,
-      lang: currentLang
-    };
+  // Butonu kilitle
+  const originalText = btn.textContent;
+  btn.textContent = currentLang === 'tr' ? 'Gönderiliyor...' : 'Submitting...';
+  btn.disabled = true;
 
-    // Submit to Supabase (falls back to localStorage automatically)
-    await window.dbSubmitApp(appData);
+  const appData = {
+    fname:       document.getElementById('fname').value.trim(),
+    lname:       document.getElementById('lname').value.trim(),
+    email:       document.getElementById('email').value.trim(),
+    school:      document.getElementById('school').value.trim(),
+    committee:   document.getElementById('committee').value,
+    experience:  document.getElementById('experience').value,
+    motivation:  (document.getElementById('motivation') || {}).value || '',
+    lang:        currentLang
+  };
 
+  try {
+    const result = await window.dbSubmitApp(appData);
+    console.log('Submit result:', result);
+
+    // Başarılı — formu gizle, teşekkür mesajı göster
     document.getElementById('apply-form-fields').style.display = 'none';
     document.getElementById('success-msg').classList.add('show');
     launchConfetti();
+
+  } catch (err) {
+    // Beklenmedik hata — butonu geri al, kullanıcıya bildir
+    console.error('submitForm caught error:', err);
+    btn.textContent = originalText;
+    btn.disabled = false;
+    alert(currentLang === 'tr'
+      ? 'Bir hata oluştu, lütfen tekrar dene.'
+      : 'Something went wrong, please try again.');
   }
 }
 

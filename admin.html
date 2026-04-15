@@ -302,16 +302,25 @@ tr:hover td { background: rgba(201,168,76,0.04); }
       <div class="table-card">
         <div class="table-header">
           <div class="table-title">All Applications</div>
-          <div class="filter-tabs">
-            <button class="filter-tab active" onclick="setFilter('all',this)">All</button>
-            <button class="filter-tab" onclick="setFilter('Pending',this)">Pending</button>
-            <button class="filter-tab" onclick="setFilter('Accepted',this)">Accepted</button>
-            <button class="filter-tab" onclick="setFilter('Rejected',this)">Rejected</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <div class="filter-tabs">
+              <button class="filter-tab active" onclick="setFilter('all',this)">All</button>
+              <button class="filter-tab" onclick="setFilter('Pending',this)">Pending</button>
+              <button class="filter-tab" onclick="setFilter('Accepted',this)">Accepted</button>
+              <button class="filter-tab" onclick="setFilter('Rejected',this)">Rejected</button>
+            </div>
+            <div class="filter-tabs" style="margin-left:8px">
+              <button class="filter-tab active" id="type-tab-all" onclick="setTypeFilter('all',this)">All Types</button>
+              <button class="filter-tab" onclick="setTypeFilter('delegate',this)">Delegate</button>
+              <button class="filter-tab" onclick="setTypeFilter('delegation',this)">Delegation</button>
+              <button class="filter-tab" onclick="setTypeFilter('press',this)">Press</button>
+              <button class="filter-tab" onclick="setTypeFilter('admin',this)">Admin</button>
+            </div>
           </div>
         </div>
         <div id="app-table-wrap">
           <table>
-            <thead><tr><th>#</th><th>Name</th><th>School</th><th>Committee</th><th>Experience</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>#</th><th>Type</th><th>Name</th><th>School</th><th>Committee / Role</th><th>English</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="apps-tbody"></tbody>
           </table>
           <div class="empty-state" id="empty-state" style="display:none;">
@@ -410,6 +419,7 @@ function logout() {
 // ════════════════════════════════════════
 let allApps = [];
 let currentFilter = 'all';
+let currentTypeFilter = 'all';
 let currentModalId = null;
 let usingFirebase = false;
 
@@ -544,7 +554,17 @@ function renderOverview() {
 // ════════════════════════════════════════
 function setFilter(filter, btn) {
   currentFilter = filter;
-  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  // Only deactivate the status filter tabs
+  const statusTabs = btn ? btn.parentElement.querySelectorAll('.filter-tab') : [];
+  statusTabs.forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderAppsTable();
+}
+
+function setTypeFilter(type, btn) {
+  currentTypeFilter = type;
+  const typeTabs = btn ? btn.parentElement.querySelectorAll('.filter-tab') : [];
+  typeTabs.forEach(t => t.classList.remove('active'));
   if (btn) btn.classList.add('active');
   renderAppsTable();
 }
@@ -553,6 +573,7 @@ function renderAppsTable() {
   let apps = [...allApps];
   const search = (document.getElementById('search-input')?.value || '').toLowerCase();
   if (currentFilter !== 'all') apps = apps.filter(a => a.status === currentFilter);
+  if (currentTypeFilter !== 'all') apps = apps.filter(a => (a.type || 'delegate') === currentTypeFilter);
   if (search) apps = apps.filter(a =>
     ((a.fname || '') + ' ' + (a.lname || '') + ' ' + (a.school || '') + ' ' + (a.committee || '') + ' ' + (a.email || '')).toLowerCase().includes(search)
   );
@@ -567,12 +588,18 @@ function renderAppsTable() {
   tbody.innerHTML = apps.map((a, i) => {
     const sc = a.status === 'Accepted' ? 'accepted' : a.status === 'Rejected' ? 'rejected' : 'pending';
     const safeId = encodeURIComponent(JSON.stringify(a.id));
+    const typeColors = {delegate:'var(--teal)',delegation:'var(--gold)',press:'#9b59b6',admin:'#3498db'};
+    const typeLabel = {delegate:'DEL',delegation:'DELEG',press:'PRESS',admin:'ADMIN'};
+    const appType = a.type || 'delegate';
+    const commOrRole = a.committee_1 || a.committee || a.position || a.press_role || '—';
+    const nameDisplay = appType === 'delegation' ? (a.delegation_leader || a.fname) : `${a.fname||''} ${a.lname||''}`;
     return `<tr>
       <td style="color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;">${String(i + 1).padStart(3, '0')}</td>
-      <td><div style="font-weight:500;">${a.fname||''} ${a.lname||''}</div><div style="font-size:11px;color:var(--muted);">${a.email||''}</div></td>
-      <td style="font-size:12px;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.school||'—'}</td>
-      <td><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);">${a.committee||'—'}</span></td>
-      <td style="font-size:12px;color:var(--muted);">${(a.experience||'—').replace('delegate','del.').replace('conferences','conf.').trim()}</td>
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(0,0,0,.3);color:${typeColors[appType]||'var(--muted)'};border:1px solid rgba(0,172,193,.3)">${typeLabel[appType]||appType.toUpperCase()}</span></td>
+      <td><div style="font-weight:500;">${nameDisplay}</div><div style="font-size:11px;color:var(--muted);">${a.email||''}</div></td>
+      <td style="font-size:12px;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.school||'—'}</td>
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);">${commOrRole}</span></td>
+      <td style="font-size:11px;color:var(--muted);">${a.english_level||'—'}</td>
       <td style="font-size:11px;color:var(--muted);">${a.date||'—'}</td>
       <td><span class="status-pill ${sc}" onclick="openModal('${a.id}')">${a.status||'Pending'}</span></td>
       <td><div style="display:flex;gap:6px;">
@@ -612,15 +639,40 @@ function openModal(id) {
   if (!a) return;
   currentModalId = a.id;
   document.getElementById('modal-name').textContent = (a.fname || '') + ' ' + (a.lname || '');
+  const typeColors2 = {delegate:'var(--teal)',delegation:'var(--gold)',press:'#9b59b6',admin:'#3498db'};
+  const appType2 = a.type || 'delegate';
+  let membersHTML = '';
+  if (appType2 === 'delegation' && a.delegation_members) {
+    try {
+      const members = JSON.parse(a.delegation_members);
+      membersHTML = `<div class="modal-field"><div class="modal-label">Delegation Members (${members.length})</div>` +
+        members.map((m,i) => `<div style="background:rgba(5,14,36,.5);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:8px;font-size:12px;">
+          <strong style="color:var(--white)">${m.fname} ${m.lname}</strong> · ${m.email||''}<br>
+          <span style="color:var(--muted)">Comm: ${m.committee_1||'—'} / ${m.committee_2||'—'} · English: ${m.english_level||'—'} · ${m.gender||''}</span>
+          ${m.health_info ? `<br><span style="color:#f39c12">Health: ${m.health_info}</span>` : ''}
+        </div>`).join('') + '</div>';
+    } catch(e) {}
+  }
   document.getElementById('modal-fields').innerHTML = `
+    <div class="modal-field"><div class="modal-label">Type</div><div class="modal-value" style="color:${typeColors2[appType2]||'var(--muted)'};text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-size:12px">${appType2}</div></div>
     <div class="modal-field"><div class="modal-label">Email</div><div class="modal-value">${a.email||'—'}</div></div>
     <div class="modal-field"><div class="modal-label">School</div><div class="modal-value">${a.school||'—'}</div></div>
-    <div class="modal-field"><div class="modal-label">Committee</div><div class="modal-value">${a.committee||'—'}</div></div>
-    <div class="modal-field"><div class="modal-label">Experience</div><div class="modal-value">${a.experience||'—'}</div></div>
+    ${a.dob ? `<div class="modal-field"><div class="modal-label">Date of Birth</div><div class="modal-value">${a.dob}</div></div>` : ''}
+    ${a.national_id ? `<div class="modal-field"><div class="modal-label">National ID</div><div class="modal-value">${a.national_id}</div></div>` : ''}
+    ${a.phone ? `<div class="modal-field"><div class="modal-label">Phone</div><div class="modal-value">${a.phone}</div></div>` : ''}
+    ${a.gender ? `<div class="modal-field"><div class="modal-label">Gender</div><div class="modal-value">${a.gender}</div></div>` : ''}
+    ${a.english_level ? `<div class="modal-field"><div class="modal-label">English Level</div><div class="modal-value">${a.english_level}</div></div>` : ''}
+    ${a.committee_1 ? `<div class="modal-field"><div class="modal-label">Committee Preferences</div><div class="modal-value">${[a.committee_1,a.committee_2,a.committee_3].filter(Boolean).join(' / ')}</div></div>` : ''}
+    ${a.position ? `<div class="modal-field"><div class="modal-label">Position</div><div class="modal-value">${a.position}</div></div>` : ''}
+    ${a.press_role ? `<div class="modal-field"><div class="modal-label">Press Role</div><div class="modal-value">${a.press_role}</div></div>` : ''}
+    ${a.camera_model ? `<div class="modal-field"><div class="modal-label">Camera / Equipment</div><div class="modal-value">${a.camera_model}</div></div>` : ''}
+    ${a.experience ? `<div class="modal-field"><div class="modal-label">Experience</div><div class="modal-value">${a.experience}</div></div>` : ''}
+    ${a.health_info ? `<div class="modal-field"><div class="modal-label">Health Info</div><div class="modal-value" style="color:#f39c12">${a.health_info}</div></div>` : ''}
     <div class="modal-field"><div class="modal-label">Applied On</div><div class="modal-value">${a.date||'—'}</div></div>
-    <div class="modal-field"><div class="modal-label">Current Status</div><div class="modal-value" style="color:${a.status==='Accepted'?'var(--green)':a.status==='Rejected'?'var(--red)':'#f39c12'}">${a.status||'Pending'}</div></div>
+    <div class="modal-field"><div class="modal-label">Status</div><div class="modal-value" style="color:${a.status==='Accepted'?'var(--green)':a.status==='Rejected'?'var(--red)':'#f39c12'}">${a.status||'Pending'}</div></div>
+    ${membersHTML}
     ${a.motivation ? `<div class="modal-field"><div class="modal-label">Motivation</div><div class="modal-motivation">${a.motivation}</div></div>` : ''}
-    ${a.lang ? `<div class="modal-field"><div class="modal-label">Language</div><div class="modal-value">${a.lang.toUpperCase()}</div></div>` : ''}
+    ${a.note ? `<div class="modal-field"><div class="modal-label">Note</div><div class="modal-motivation">${a.note}</div></div>` : ''}
   `;
   document.getElementById('modal-overlay').classList.add('show');
 }

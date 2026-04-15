@@ -306,6 +306,23 @@ section{padding:80px 20px;max-width:1100px;margin:0 auto}
 .form-input:focus{border-color:var(--teal);background:rgba(5,14,36,.9)}
 .form-input.ok{border-color:rgba(39,174,96,.5)}
 .form-input.error{border-color:rgba(231,76,60,.5)}
+
+/* APPLICATION TYPE CARDS */
+.app-type-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:8px}
+.app-type-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px 20px;cursor:pointer;transition:all .3s;text-align:center}
+.app-type-card:hover{border-color:var(--border-h);transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,172,193,.1)}
+.app-type-icon{font-size:32px;color:var(--teal);margin-bottom:12px;font-family:"JetBrains Mono",monospace}
+.app-type-title{font-family:"Syne",sans-serif;font-weight:800;font-size:18px;margin-bottom:8px}
+.app-type-desc{font-size:13px;color:var(--muted);line-height:1.5;font-weight:300}
+
+/* DELEGATE MEMBER CARD */
+.delegate-member{background:rgba(5,14,36,.6);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px;position:relative}
+.delegate-member-num{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--teal);letter-spacing:2px;margin-bottom:14px}
+.delegate-remove{position:absolute;top:16px;right:16px;background:none;border:1px solid rgba(231,76,60,.3);color:rgba(231,76,60,.7);padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;transition:all .2s}
+.delegate-remove:hover{background:rgba(231,76,60,.1);border-color:rgba(231,76,60,.6)}
+
+@media(max-width:900px){.app-type-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.app-type-grid{grid-template-columns:1fr 1fr}}
 .form-error{font-size:11px;color:#e74c3c;height:14px;transition:opacity .2s;opacity:0}
 .form-error.show{opacity:1}
 select.form-input option{background:var(--navy);color:var(--white)}
@@ -674,71 +691,244 @@ footer{border-top:1px solid var(--border);padding:48px 20px;text-align:center}
 
 <!-- APPLICATION FORM -->
 <div id="apply" style="padding:80px 20px">
-  <div style="max-width:1060px;margin:0 auto;background:var(--surface);border-radius:24px;border:1px solid var(--border);padding:60px">
-    <div class="section-tag" data-tr="Başvuru" data-en="Application">Application</div>
-    <h2 class="section-title" data-tr="Delegeliğe Başvur" data-en="Apply for Delegacy">Apply for Delegacy</h2>
-    <p class="section-sub" data-tr="Aşağıdaki formu doldur ve BolMUN 2026'da yer al." data-en="Fill in the form below and secure your place at BolMUN 2026.">Fill in the form below and secure your place at BolMUN 2026.</p>
+  <div style="max-width:1060px;margin:0 auto">
 
-    <div id="apply-form-fields">
-      <div class="form-grid">
-        <div class="form-group">
-          <label class="form-label" data-tr="Ad *" data-en="First Name *">First Name *</label>
-          <input class="form-input" type="text" id="fname" placeholder="Ada">
-          <div class="form-error" id="fname-err" data-tr="Ad gereklidir" data-en="First name is required">First name is required</div>
+    <!-- TYPE SELECTOR -->
+    <div id="apply-type-selector" style="text-align:center;margin-bottom:48px">
+      <div class="section-tag" data-tr="Başvuru" data-en="Application">Application</div>
+      <h2 class="section-title" data-tr="Başvuru Türünü Seç" data-en="Choose Application Type">Choose Application Type</h2>
+      <p class="section-sub" style="margin:0 auto 40px" data-tr="Konferansa nasıl katılmak istediğini seç." data-en="Select how you want to participate in the conference.">Select how you want to participate in the conference.</p>
+      <div class="app-type-grid">
+        <div class="app-type-card" onclick="selectType('delegate')">
+          <div class="app-type-icon">◈</div>
+          <div class="app-type-title" data-tr="Delege" data-en="Delegate">Delegate</div>
+          <div class="app-type-desc" data-tr="Bireysel olarak bir komitede ülke temsil et." data-en="Represent a country in a committee individually.">Represent a country in a committee individually.</div>
         </div>
-        <div class="form-group">
-          <label class="form-label" data-tr="Soyad *" data-en="Last Name *">Last Name *</label>
-          <input class="form-input" type="text" id="lname" placeholder="Yılmaz">
-          <div class="form-error" id="lname-err" data-tr="Soyad gereklidir" data-en="Last name is required">Last name is required</div>
+        <div class="app-type-card" onclick="selectType('delegation')">
+          <div class="app-type-icon">◉</div>
+          <div class="app-type-title" data-tr="Delegasyon" data-en="Delegation">Delegation</div>
+          <div class="app-type-desc" data-tr="Okulun adına grup olarak başvur, birden fazla delege ekle." data-en="Apply as a group on behalf of your school, add multiple delegates.">Apply as a group on behalf of your school.</div>
         </div>
-        <div class="form-group full">
-          <label class="form-label" data-tr="E-posta *" data-en="Email *">Email *</label>
-          <input class="form-input" type="email" id="email" placeholder="ada@example.com">
-          <div class="form-error" id="email-err" data-tr="Geçerli bir e-posta girin" data-en="Enter a valid email">Enter a valid email</div>
+        <div class="app-type-card" onclick="selectType('press')">
+          <div class="app-type-icon">◎</div>
+          <div class="app-type-title" data-tr="Basın" data-en="Press">Press</div>
+          <div class="app-type-desc" data-tr="Konferansı bir gazeteci veya fotoğrafçı olarak takip et." data-en="Cover the conference as a journalist or photographer.">Cover the conference as a journalist or photographer.</div>
         </div>
-        <div class="form-group full">
-          <label class="form-label" data-tr="Okul *" data-en="School *">School *</label>
-          <input class="form-input" type="text" id="school" placeholder="Gülser Mehmet Bolluk Anadolu Lisesi">
-          <div class="form-error" id="school-err" data-tr="Okul adı gereklidir" data-en="School name is required">School name is required</div>
-        </div>
-        <div class="form-group full">
-          <!-- ✏️ Update committee options here and in JS committees array -->
-          <label class="form-label" data-tr="Tercih Edilen Komite *" data-en="Preferred Committee *">Preferred Committee *</label>
-          <select class="form-input" id="committee">
-            <option value="" data-tr="Bir komite seçin..." data-en="Select a committee...">Select a committee...</option>
-            <option value="UNSC" data-tr="UNSC — BM Güvenlik Konseyi" data-en="UNSC — UN Security Council">UNSC — UN Security Council</option>
-            <option value="UNGA" data-tr="UNGA — BM Genel Kurulu" data-en="UNGA — UN General Assembly">UNGA — UN General Assembly</option>
-            <option value="WHO" data-tr="WHO — Dünya Sağlık Örgütü" data-en="WHO — World Health Organization">WHO — World Health Organization</option>
-            <option value="UNHRC" data-tr="UNHRC — BM İnsan Hakları Konseyi" data-en="UNHRC — UN Human Rights Council">UNHRC — UN Human Rights Council</option>
-            <option value="ECOSOC" data-tr="ECOSOC — Ekonomik ve Sosyal Konsey" data-en="ECOSOC — Economic & Social Council">ECOSOC — Economic & Social Council</option>
-            <option value="ICJ" data-tr="ICJ — Uluslararası Adalet Divanı" data-en="ICJ — International Court of Justice">ICJ — International Court of Justice</option>
-          </select>
-          <div class="form-error" id="committee-err" data-tr="Bir komite seçin" data-en="Please select a committee">Please select a committee</div>
-        </div>
-        <div class="form-group full">
-          <label class="form-label" data-tr="Deneyim Düzeyi" data-en="Experience Level">Experience Level</label>
-          <select class="form-input" id="experience">
-            <option value="First-time delegate" data-tr="İlk kez delege" data-en="First-time delegate">First-time delegate</option>
-            <option value="1-2 conferences" data-tr="1-2 konferans" data-en="1-2 conferences">1-2 conferences</option>
-            <option value="3-5 conferences" data-tr="3-5 konferans" data-en="3-5 conferences">3-5 conferences</option>
-            <option value="5+ conferences" data-tr="5+ konferans" data-en="5+ conferences">5+ conferences</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label class="form-label" data-tr="Motivasyon Mektubu" data-en="Motivation Letter">Motivation Letter</label>
-          <textarea class="form-input" id="motivation" placeholder="Tell us why you want to attend BolMUN 2026 and what you hope to achieve..." data-tr-placeholder="BolMUN 2026'ya neden katılmak istediğini ve neler başarmayı umduğunu anlat..." data-en-placeholder="Tell us why you want to attend BolMUN 2026 and what you hope to achieve..."></textarea>
-        </div>
-        <div class="submit-wrap">
-          <button class="btn-p" onclick="submitForm()" id="submit-btn" data-tr="Başvuruyu Gönder →" data-en="Submit Application →">Submit Application →</button>
-          <span style="font-size:12px;color:var(--muted)" data-tr="Başvurular değerlendirildikten sonra e-posta ile bildirileceksiniz." data-en="You'll be notified by email after your application is reviewed.">You'll be notified by email after your application is reviewed.</span>
+        <div class="app-type-card" onclick="selectType('admin')">
+          <div class="app-type-icon">◇</div>
+          <div class="app-type-title" data-tr="Admin" data-en="Admin">Admin</div>
+          <div class="app-type-desc" data-tr="Organizasyon veya akademi ekibine katıl." data-en="Join the organizing or academic staff team.">Join the organizing or academic staff team.</div>
         </div>
       </div>
     </div>
 
-    <div id="success-msg">
-      <div class="success-icon">🎉</div>
-      <div class="success-title" data-tr="Başvurun Alındı!" data-en="Application Received!">Application Received!</div>
-      <div class="success-sub" data-tr="BolMUN 2026'ya başvurduğun için teşekkürler. Başvurun değerlendirildikten sonra e-posta ile bildirileceksin." data-en="Thank you for applying to BolMUN 2026. You'll be notified by email once your application has been reviewed.">Thank you for applying to BolMUN 2026. You'll be notified by email once your application has been reviewed.</div>
+    <!-- FORM WRAPPER -->
+    <div id="apply-form-wrapper" style="display:none">
+      <div style="background:var(--surface);border-radius:24px;border:1px solid var(--border);padding:60px">
+
+        <!-- Back button -->
+        <button onclick="backToSelector()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:8px 18px;border-radius:8px;font-size:13px;cursor:pointer;margin-bottom:32px;display:inline-flex;align-items:center;gap:6px;transition:all .2s" onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+          ← <span data-tr="Geri" data-en="Back">Back</span>
+        </button>
+
+        <div id="form-type-tag" class="section-tag"></div>
+        <h2 id="form-type-title" class="section-title"></h2>
+        <p id="form-type-sub" class="section-sub" style="margin-bottom:0"></p>
+
+        <div id="apply-form-fields">
+
+          <!-- ══ DELEGATE FORM ══ -->
+          <div id="form-delegate" class="typed-form" style="display:none">
+            <div class="form-grid">
+              <div class="form-group"><label class="form-label" data-tr="Ad *" data-en="First Name *">First Name *</label><input class="form-input" id="d-fname" type="text"><div class="form-error" id="d-fname-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="Soyad *" data-en="Last Name *">Last Name *</label><input class="form-input" id="d-lname" type="text"><div class="form-error" id="d-lname-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group full"><label class="form-label" data-tr="E-posta *" data-en="Email *">Email *</label><input class="form-input" id="d-email" type="email"><div class="form-error" id="d-email-err" data-tr="Geçerli e-posta girin" data-en="Enter valid email">Enter valid email</div></div>
+              <div class="form-group"><label class="form-label" data-tr="Doğum Tarihi *" data-en="Date of Birth *">Date of Birth *</label><input class="form-input" id="d-dob" type="date"><div class="form-error" id="d-dob-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="TC Kimlik No *" data-en="National ID *">National ID *</label><input class="form-input" id="d-natid" type="text" maxlength="11"><div class="form-error" id="d-natid-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="Telefon *" data-en="Phone *">Phone *</label><input class="form-input" id="d-phone" type="tel"><div class="form-error" id="d-phone-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="Cinsiyet *" data-en="Gender *">Gender *</label>
+                <select class="form-input" id="d-gender">
+                  <option value="" data-tr="Seçin..." data-en="Select...">Select...</option>
+                  <option value="Male" data-tr="Erkek" data-en="Male">Male</option>
+                  <option value="Female" data-tr="Kadın" data-en="Female">Female</option>
+                  <option value="Prefer not to say" data-tr="Belirtmek istemiyorum" data-en="Prefer not to say">Prefer not to say</option>
+                </select>
+                <div class="form-error" id="d-gender-err" data-tr="Gerekli" data-en="Required">Required</div>
+              </div>
+              <div class="form-group full"><label class="form-label" data-tr="Okul *" data-en="School *">School *</label><input class="form-input" id="d-school" type="text"><div class="form-error" id="d-school-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="MUN Deneyimi" data-en="MUN Experience">MUN Experience</label>
+                <select class="form-input" id="d-experience">
+                  <option value="First-time" data-tr="İlk kez" data-en="First-time">First-time</option>
+                  <option value="1-2 conferences" data-tr="1-2 konferans" data-en="1-2 conferences">1-2 conferences</option>
+                  <option value="3-5 conferences" data-tr="3-5 konferans" data-en="3-5 conferences">3-5 conferences</option>
+                  <option value="5+ conferences" data-tr="5+ konferans" data-en="5+ conferences">5+ conferences</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="form-label" data-tr="İngilizce Seviyesi *" data-en="English Level *">English Level *</label>
+                <select class="form-input" id="d-english">
+                  <option value="" data-tr="Seçin..." data-en="Select...">Select...</option>
+                  <option value="A1-A2">A1-A2 (Beginner)</option>
+                  <option value="B1-B2">B1-B2 (Intermediate)</option>
+                  <option value="C1-C2">C1-C2 (Advanced)</option>
+                  <option value="Native">Native</option>
+                </select>
+                <div class="form-error" id="d-english-err" data-tr="Gerekli" data-en="Required">Required</div>
+              </div>
+              <div class="form-group full"><label class="form-label" data-tr="1. Komite Tercihi *" data-en="1st Committee Preference *">1st Committee Preference *</label>
+                <select class="form-input" id="d-comm1">
+                  <option value="" data-tr="Seçin..." data-en="Select...">Select...</option>
+                  <option value="UNSC">UNSC — UN Security Council</option>
+                  <option value="UNGA">UNGA — UN General Assembly</option>
+                  <option value="WHO">WHO — World Health Organization</option>
+                  <option value="UNHRC">UNHRC — UN Human Rights Council</option>
+                  <option value="ECOSOC">ECOSOC — Economic & Social Council</option>
+                  <option value="ICJ">ICJ — International Court of Justice</option>
+                </select>
+                <div class="form-error" id="d-comm1-err" data-tr="Gerekli" data-en="Required">Required</div>
+              </div>
+              <div class="form-group"><label class="form-label" data-tr="2. Komite Tercihi" data-en="2nd Committee Preference">2nd Committee Preference</label>
+                <select class="form-input" id="d-comm2">
+                  <option value="" data-tr="Seçin..." data-en="Select...">Select...</option>
+                  <option value="UNSC">UNSC</option><option value="UNGA">UNGA</option><option value="WHO">WHO</option><option value="UNHRC">UNHRC</option><option value="ECOSOC">ECOSOC</option><option value="ICJ">ICJ</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="form-label" data-tr="3. Komite Tercihi" data-en="3rd Committee Preference">3rd Committee Preference</label>
+                <select class="form-input" id="d-comm3">
+                  <option value="" data-tr="Seçin..." data-en="Select...">Select...</option>
+                  <option value="UNSC">UNSC</option><option value="UNGA">UNGA</option><option value="WHO">WHO</option><option value="UNHRC">UNHRC</option><option value="ECOSOC">ECOSOC</option><option value="ICJ">ICJ</option>
+                </select>
+              </div>
+              <div class="form-group full"><label class="form-label" data-tr="Sağlık Bilgisi / Alerji" data-en="Health Info / Allergies">Health Info / Allergies</label><textarea class="form-input" id="d-health" style="min-height:70px"></textarea></div>
+              <div class="form-group full"><label class="form-label" data-tr="Motivasyon Mektubu *" data-en="Motivation Letter *">Motivation Letter *</label><textarea class="form-input" id="d-motivation" style="min-height:130px"></textarea><div class="form-error" id="d-motivation-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="submit-wrap"><button class="btn-p" id="submit-btn" onclick="submitForm()"><span data-tr="Başvuruyu Gönder →" data-en="Submit Application →">Submit Application →</span></button></div>
+            </div>
+          </div>
+
+          <!-- ══ PRESS FORM ══ -->
+          <div id="form-press" class="typed-form" style="display:none">
+            <div class="form-grid">
+              <div class="form-group"><label class="form-label" data-tr="Ad *" data-en="First Name *">First Name *</label><input class="form-input" id="p-fname" type="text"><div class="form-error" id="p-fname-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="Soyad *" data-en="Last Name *">Last Name *</label><input class="form-input" id="p-lname" type="text"><div class="form-error" id="p-lname-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group full"><label class="form-label" data-tr="E-posta *" data-en="Email *">Email *</label><input class="form-input" id="p-email" type="email"><div class="form-error" id="p-email-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="Doğum Tarihi *" data-en="Date of Birth *">Date of Birth *</label><input class="form-input" id="p-dob" type="date"><div class="form-error" id="p-dob-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="TC Kimlik No *" data-en="National ID *">National ID *</label><input class="form-input" id="p-natid" type="text" maxlength="11"><div class="form-error" id="p-natid-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="Telefon *" data-en="Phone *">Phone *</label><input class="form-input" id="p-phone" type="tel"><div class="form-error" id="p-phone-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="Cinsiyet *" data-en="Gender *">Gender *</label>
+                <select class="form-input" id="p-gender">
+                  <option value="" data-tr="Seçin..." data-en="Select...">Select...</option>
+                  <option value="Male" data-tr="Erkek" data-en="Male">Male</option>
+                  <option value="Female" data-tr="Kadın" data-en="Female">Female</option>
+                  <option value="Prefer not to say" data-tr="Belirtmek istemiyorum" data-en="Prefer not to say">Prefer not to say</option>
+                </select>
+                <div class="form-error" id="p-gender-err" data-tr="Gerekli" data-en="Required">Required</div>
+              </div>
+              <div class="form-group full"><label class="form-label" data-tr="Okul / Kurum *" data-en="School / Organization *">School / Organization *</label><input class="form-input" id="p-school" type="text"><div class="form-error" id="p-school-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group full"><label class="form-label" data-tr="Basın Rolü *" data-en="Press Role *">Press Role *</label>
+                <select class="form-input" id="p-role">
+                  <option value="" data-tr="Seçin..." data-en="Select...">Select...</option>
+                  <option value="Journalist" data-tr="Gazeteci" data-en="Journalist">Journalist</option>
+                  <option value="Photographer" data-tr="Fotoğrafçı" data-en="Photographer">Photographer</option>
+                  <option value="Videographer" data-tr="Kameraman" data-en="Videographer">Videographer</option>
+                  <option value="Editor" data-tr="Editör" data-en="Editor">Editor</option>
+                </select>
+                <div class="form-error" id="p-role-err" data-tr="Gerekli" data-en="Required">Required</div>
+              </div>
+              <div class="form-group full"><label class="form-label" data-tr="Kamera / Ekipman Modeli" data-en="Camera / Equipment Model">Camera / Equipment Model</label><input class="form-input" id="p-camera" type="text" placeholder="e.g. Canon EOS R50, Sony A7 III, iPhone 15 Pro"></div>
+              <div class="form-group"><label class="form-label" data-tr="İngilizce Seviyesi *" data-en="English Level *">English Level *</label>
+                <select class="form-input" id="p-english">
+                  <option value="">Select...</option>
+                  <option value="A1-A2">A1-A2</option><option value="B1-B2">B1-B2</option><option value="C1-C2">C1-C2</option><option value="Native">Native</option>
+                </select>
+                <div class="form-error" id="p-english-err" data-tr="Gerekli" data-en="Required">Required</div>
+              </div>
+              <div class="form-group"><label class="form-label" data-tr="Sağlık Bilgisi / Alerji" data-en="Health Info / Allergies">Health Info / Allergies</label><textarea class="form-input" id="p-health" style="min-height:70px"></textarea></div>
+              <div class="form-group full"><label class="form-label" data-tr="Motivasyon Mektubu *" data-en="Motivation Letter *">Motivation Letter *</label><textarea class="form-input" id="p-motivation" style="min-height:130px"></textarea><div class="form-error" id="p-motivation-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="submit-wrap"><button class="btn-p" id="submit-btn-press" onclick="submitForm()"><span data-tr="Başvuruyu Gönder →" data-en="Submit Application →">Submit Application →</span></button></div>
+            </div>
+          </div>
+
+          <!-- ══ ADMIN FORM ══ -->
+          <div id="form-admin" class="typed-form" style="display:none">
+            <div class="form-grid">
+              <div class="form-group"><label class="form-label" data-tr="Ad *" data-en="First Name *">First Name *</label><input class="form-input" id="a-fname" type="text"><div class="form-error" id="a-fname-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="Soyad *" data-en="Last Name *">Last Name *</label><input class="form-input" id="a-lname" type="text"><div class="form-error" id="a-lname-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group full"><label class="form-label" data-tr="E-posta *" data-en="Email *">Email *</label><input class="form-input" id="a-email" type="email"><div class="form-error" id="a-email-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="Doğum Tarihi *" data-en="Date of Birth *">Date of Birth *</label><input class="form-input" id="a-dob" type="date"><div class="form-error" id="a-dob-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="TC Kimlik No *" data-en="National ID *">National ID *</label><input class="form-input" id="a-natid" type="text" maxlength="11"><div class="form-error" id="a-natid-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="Telefon *" data-en="Phone *">Phone *</label><input class="form-input" id="a-phone" type="tel"><div class="form-error" id="a-phone-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="Cinsiyet *" data-en="Gender *">Gender *</label>
+                <select class="form-input" id="a-gender">
+                  <option value="" data-tr="Seçin..." data-en="Select...">Select...</option>
+                  <option value="Male" data-tr="Erkek" data-en="Male">Male</option>
+                  <option value="Female" data-tr="Kadın" data-en="Female">Female</option>
+                  <option value="Prefer not to say" data-tr="Belirtmek istemiyorum" data-en="Prefer not to say">Prefer not to say</option>
+                </select>
+                <div class="form-error" id="a-gender-err" data-tr="Gerekli" data-en="Required">Required</div>
+              </div>
+              <div class="form-group full"><label class="form-label" data-tr="Okul *" data-en="School *">School *</label><input class="form-input" id="a-school" type="text"><div class="form-error" id="a-school-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group full"><label class="form-label" data-tr="Başvurulan Pozisyon *" data-en="Position Applied For *">Position Applied For *</label>
+                <select class="form-input" id="a-position">
+                  <option value="" data-tr="Seçin..." data-en="Select...">Select...</option>
+                  <option value="Secretary General" data-tr="Genel Sekreter" data-en="Secretary General">Secretary General</option>
+                  <option value="Deputy SG" data-tr="GS Yardımcısı" data-en="Deputy SG">Deputy SG</option>
+                  <option value="Academic Director" data-tr="Akademi Direktörü" data-en="Academic Director">Academic Director</option>
+                  <option value="Committee Director" data-tr="Komite Direktörü" data-en="Committee Director">Committee Director</option>
+                  <option value="Organizing Committee" data-tr="Organizasyon Komitesi" data-en="Organizing Committee">Organizing Committee</option>
+                  <option value="Logistics" data-tr="Lojistik" data-en="Logistics">Logistics</option>
+                  <option value="Design & Media" data-tr="Tasarım & Medya" data-en="Design & Media">Design & Media</option>
+                  <option value="Other" data-tr="Diğer" data-en="Other">Other</option>
+                </select>
+                <div class="form-error" id="a-position-err" data-tr="Gerekli" data-en="Required">Required</div>
+              </div>
+              <div class="form-group"><label class="form-label" data-tr="İngilizce Seviyesi *" data-en="English Level *">English Level *</label>
+                <select class="form-input" id="a-english">
+                  <option value="">Select...</option>
+                  <option value="A1-A2">A1-A2</option><option value="B1-B2">B1-B2</option><option value="C1-C2">C1-C2</option><option value="Native">Native</option>
+                </select>
+                <div class="form-error" id="a-english-err" data-tr="Gerekli" data-en="Required">Required</div>
+              </div>
+              <div class="form-group"><label class="form-label" data-tr="Sağlık Bilgisi / Alerji" data-en="Health Info / Allergies">Health Info / Allergies</label><textarea class="form-input" id="a-health" style="min-height:70px"></textarea></div>
+              <div class="form-group full"><label class="form-label" data-tr="Motivasyon Mektubu *" data-en="Motivation Letter *">Motivation Letter *</label><textarea class="form-input" id="a-motivation" style="min-height:130px"></textarea><div class="form-error" id="a-motivation-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="submit-wrap"><button class="btn-p" id="submit-btn-admin" onclick="submitForm()"><span data-tr="Başvuruyu Gönder →" data-en="Submit Application →">Submit Application →</span></button></div>
+            </div>
+          </div>
+
+          <!-- ══ DELEGATION FORM ══ -->
+          <div id="form-delegation" class="typed-form" style="display:none">
+            <div class="form-grid">
+              <div class="form-group full"><label class="form-label" data-tr="Delegasyon Lideri Adı *" data-en="Delegation Leader Name *">Delegation Leader Name *</label><input class="form-input" id="dl-leader" type="text"><div class="form-error" id="dl-leader-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group full"><label class="form-label" data-tr="Okul / Kurum *" data-en="School / Institution *">School / Institution *</label><input class="form-input" id="dl-school" type="text"><div class="form-error" id="dl-school-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="İletişim E-postası *" data-en="Contact Email *">Contact Email *</label><input class="form-input" id="dl-email" type="email"><div class="form-error" id="dl-email-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+              <div class="form-group"><label class="form-label" data-tr="İletişim Telefonu *" data-en="Contact Phone *">Contact Phone *</label><input class="form-input" id="dl-phone" type="tel"><div class="form-error" id="dl-phone-err" data-tr="Gerekli" data-en="Required">Required</div></div>
+            </div>
+
+            <!-- Delegate Members -->
+            <div style="margin-top:36px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+              <div>
+                <div class="section-tag" style="margin-bottom:4px" data-tr="Delegeler" data-en="Delegates">Delegates</div>
+                <div style="font-size:13px;color:var(--muted)" data-tr="Delegasyon üyelerini ekle (min. 2)" data-en="Add delegation members (min. 2)">Add delegation members (min. 2)</div>
+              </div>
+              <button onclick="addDelegate()" style="background:rgba(0,172,193,.12);border:1px solid var(--border-h);color:var(--teal-light);padding:9px 20px;border-radius:9px;font-size:13px;cursor:pointer;font-family:'Syne',sans-serif;font-weight:700;transition:all .2s" onmouseover="this.style.background='rgba(0,172,193,.22)'" onmouseout="this.style.background='rgba(0,172,193,.12)'">+ <span data-tr="Delege Ekle" data-en="Add Delegate">Add Delegate</span></button>
+            </div>
+
+            <div id="delegates-list"></div>
+            <div class="form-error" id="dl-delegates-err" style="margin-bottom:12px" data-tr="En az 2 delege gerekli" data-en="At least 2 delegates required">At least 2 delegates required</div>
+
+            <div class="form-grid" style="margin-top:20px">
+              <div class="form-group full"><label class="form-label" data-tr="Delegasyon Notu" data-en="Delegation Note">Delegation Note</label><textarea class="form-input" id="dl-note" style="min-height:90px"></textarea></div>
+              <div class="submit-wrap"><button class="btn-p" id="submit-btn-delegation" onclick="submitForm()"><span data-tr="Delegasyonu Gönder →" data-en="Submit Delegation →">Submit Delegation →</span></button></div>
+            </div>
+          </div>
+
+        </div><!-- /apply-form-fields -->
+
+        <div id="success-msg">
+          <div class="success-icon">🎉</div>
+          <div class="success-title" data-tr="Başvurun Alındı!" data-en="Application Received!">Application Received!</div>
+          <div class="success-sub" data-tr="BolMUN 2026'ya başvurduğun için teşekkürler. Başvurun değerlendirildikten sonra e-posta ile bildirileceksin." data-en="Thank you for applying to BolMUN 2026. You will be notified by email once your application has been reviewed.">Thank you for applying to BolMUN 2026.</div>
+        </div>
+
+      </div>
     </div>
   </div>
 </div>
@@ -1108,50 +1298,188 @@ function vf(id, eId, fn) {
   return ok;
 }
 
+let currentAppType = 'delegate';
+let delegateCount = 0;
+
+function selectType(type) {
+  currentAppType = type;
+  document.getElementById('apply-type-selector').style.display = 'none';
+  document.getElementById('apply-form-wrapper').style.display = 'block';
+  document.querySelectorAll('.typed-form').forEach(f => f.style.display = 'none');
+  document.getElementById('form-' + type).style.display = 'block';
+  document.getElementById('success-msg').classList.remove('show');
+  document.getElementById('apply-form-fields').style.display = 'block';
+
+  const L = currentLang;
+  const tags = {delegate:{tr:'Delege Başvurusu',en:'Delegate Application'},press:{tr:'Basın Başvurusu',en:'Press Application'},admin:{tr:'Admin Başvurusu',en:'Admin Application'},delegation:{tr:'Delegasyon Başvurusu',en:'Delegation Application'}};
+  const titles = {delegate:{tr:'Delege Olarak Başvur',en:'Apply as Delegate'},press:{tr:'Basın Olarak Başvur',en:'Apply as Press'},admin:{tr:'Admin Olarak Başvur',en:'Apply as Admin'},delegation:{tr:'Delegasyon Başvurusu',en:'Delegation Application'}};
+  const subs = {delegate:{tr:'Formu eksiksiz doldur ve BolMUN 2026 da komitende yer al.',en:'Complete the form and secure your committee place at BolMUN 2026.'},press:{tr:'Konferansı basın üyesi olarak takip etmek için başvur.',en:'Apply to cover the conference as press.'},admin:{tr:'Organizasyon ya da akademi ekibine katılmak için başvur.',en:'Apply to join the organizing or academic team.'},delegation:{tr:'Okulun adına grup başvurusu yap, birden fazla delege ekle.',en:'Submit a group application on behalf of your school.'}};
+  document.getElementById('form-type-tag').textContent = tags[type][L];
+  document.getElementById('form-type-title').textContent = titles[type][L];
+  document.getElementById('form-type-sub').textContent = subs[type][L];
+
+  if (type === 'delegation' && delegateCount === 0) { addDelegate(); addDelegate(); }
+  document.getElementById('apply-form-wrapper').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function backToSelector() {
+  document.getElementById('apply-type-selector').style.display = 'block';
+  document.getElementById('apply-form-wrapper').style.display = 'none';
+}
+
+function addDelegate() {
+  delegateCount++;
+  const n = delegateCount;
+  const L = currentLang;
+  const div = document.createElement('div');
+  div.className = 'delegate-member';
+  div.id = 'dm-' + n;
+  div.innerHTML = `
+    <div class="delegate-member-num">DELEGATE ${n}</div>
+    ${n > 2 ? `<button class="delegate-remove" onclick="removeDelegate(${n})">✕ ${L==='tr'?'Kaldır':'Remove'}</button>` : ''}
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">${L==='tr'?'Ad *':'First Name *'}</label><input class="form-input" id="dm${n}-fname" type="text"></div>
+      <div class="form-group"><label class="form-label">${L==='tr'?'Soyad *':'Last Name *'}</label><input class="form-input" id="dm${n}-lname" type="text"></div>
+      <div class="form-group"><label class="form-label">${L==='tr'?'E-posta *':'Email *'}</label><input class="form-input" id="dm${n}-email" type="email"></div>
+      <div class="form-group"><label class="form-label">${L==='tr'?'Doğum Tarihi':'Date of Birth'}</label><input class="form-input" id="dm${n}-dob" type="date"></div>
+      <div class="form-group"><label class="form-label">${L==='tr'?'TC Kimlik No':'National ID'}</label><input class="form-input" id="dm${n}-natid" type="text" maxlength="11"></div>
+      <div class="form-group"><label class="form-label">${L==='tr'?'Telefon':'Phone'}</label><input class="form-input" id="dm${n}-phone" type="tel"></div>
+      <div class="form-group"><label class="form-label">${L==='tr'?'Cinsiyet':'Gender'}</label>
+        <select class="form-input" id="dm${n}-gender">
+          <option value="">${L==='tr'?'Seçin...':'Select...'}</option>
+          <option value="Male">${L==='tr'?'Erkek':'Male'}</option>
+          <option value="Female">${L==='tr'?'Kadın':'Female'}</option>
+          <option value="Prefer not to say">${L==='tr'?'Belirtmek istemiyorum':'Prefer not to say'}</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">${L==='tr'?'İngilizce Seviyesi':'English Level'}</label>
+        <select class="form-input" id="dm${n}-english">
+          <option value="">Select...</option>
+          <option value="A1-A2">A1-A2</option><option value="B1-B2">B1-B2</option><option value="C1-C2">C1-C2</option><option value="Native">Native</option>
+        </select>
+      </div>
+      <div class="form-group full"><label class="form-label">${L==='tr'?'1. Komite Tercihi *':'1st Committee Preference *'}</label>
+        <select class="form-input" id="dm${n}-comm1">
+          <option value="">${L==='tr'?'Seçin...':'Select...'}</option>
+          <option value="UNSC">UNSC</option><option value="UNGA">UNGA</option><option value="WHO">WHO</option><option value="UNHRC">UNHRC</option><option value="ECOSOC">ECOSOC</option><option value="ICJ">ICJ</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">${L==='tr'?'2. Komite':'2nd Committee'}</label>
+        <select class="form-input" id="dm${n}-comm2">
+          <option value="">-</option><option value="UNSC">UNSC</option><option value="UNGA">UNGA</option><option value="WHO">WHO</option><option value="UNHRC">UNHRC</option><option value="ECOSOC">ECOSOC</option><option value="ICJ">ICJ</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">${L==='tr'?'3. Komite':'3rd Committee'}</label>
+        <select class="form-input" id="dm${n}-comm3">
+          <option value="">-</option><option value="UNSC">UNSC</option><option value="UNGA">UNGA</option><option value="WHO">WHO</option><option value="UNHRC">UNHRC</option><option value="ECOSOC">ECOSOC</option><option value="ICJ">ICJ</option>
+        </select>
+      </div>
+      <div class="form-group full"><label class="form-label">${L==='tr'?'Sağlık Bilgisi':'Health Info'}</label><textarea class="form-input" id="dm${n}-health" style="min-height:60px"></textarea></div>
+    </div>`;
+  document.getElementById('delegates-list').appendChild(div);
+}
+
+function removeDelegate(n) {
+  const el = document.getElementById('dm-' + n);
+  if (el) el.remove();
+}
+
+function gv(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
 async function submitForm() {
-  const btn = document.getElementById('submit-btn');
+  const type = currentAppType;
+  const btns = ['submit-btn','submit-btn-press','submit-btn-admin','submit-btn-delegation'];
+  let btn = btns.map(id => document.getElementById(id)).find(b => b && b.offsetParent !== null);
+  const originalText = btn ? btn.innerHTML : '';
+  if (btn) { btn.innerHTML = currentLang === 'tr' ? 'Gönderiliyor...' : 'Submitting...'; btn.disabled = true; }
 
-  const ok = vf('fname', 'fname-err', v => v.length > 0)
-    & vf('lname', 'lname-err', v => v.length > 0)
-    & vf('email', 'email-err', v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))
-    & vf('school', 'school-err', v => v.length > 0)
-    & vf('committee', 'committee-err', v => v.length > 0);
+  let ok = true;
+  let appData = { type, lang: currentLang, date: new Date().toLocaleDateString('tr-TR'), status: 'Pending' };
 
-  if (!ok) return;
+  const req = (id, errId) => { const v=gv(id); if(!v){document.getElementById(errId).classList.add('show');const el=document.getElementById(id);if(el)el.className='form-input error';ok=false;}else{document.getElementById(errId).classList.remove('show');const el=document.getElementById(id);if(el)el.className='form-input ok';}return v; };
+  const emailOk = (id, errId) => { const v=gv(id); const valid=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); if(!valid){document.getElementById(errId).classList.add('show');const el=document.getElementById(id);if(el)el.className='form-input error';ok=false;}else{document.getElementById(errId).classList.remove('show');const el=document.getElementById(id);if(el)el.className='form-input ok';}return v; };
 
-  // Butonu kilitle
-  const originalText = btn.textContent;
-  btn.textContent = currentLang === 'tr' ? 'Gönderiliyor...' : 'Submitting...';
-  btn.disabled = true;
+  if (type === 'delegate') {
+    appData = {...appData,
+      fname: req('d-fname','d-fname-err'), lname: req('d-lname','d-lname-err'),
+      email: emailOk('d-email','d-email-err'), dob: gv('d-dob'),
+      national_id: gv('d-natid'), phone: gv('d-phone'), gender: gv('d-gender'),
+      school: req('d-school','d-school-err'), experience: gv('d-experience'),
+      english_level: req('d-english','d-english-err'),
+      committee_1: req('d-comm1','d-comm1-err'), committee_2: gv('d-comm2'), committee_3: gv('d-comm3'),
+      health_info: gv('d-health'), motivation: req('d-motivation','d-motivation-err')
+    };
+    if (!gv('d-gender')) { document.getElementById('d-gender-err').classList.add('show'); ok=false; }
 
-  const appData = {
-    fname:       document.getElementById('fname').value.trim(),
-    lname:       document.getElementById('lname').value.trim(),
-    email:       document.getElementById('email').value.trim(),
-    school:      document.getElementById('school').value.trim(),
-    committee:   document.getElementById('committee').value,
-    experience:  document.getElementById('experience').value,
-    motivation:  (document.getElementById('motivation') || {}).value || '',
-    lang:        currentLang
-  };
+  } else if (type === 'press') {
+    appData = {...appData,
+      fname: req('p-fname','p-fname-err'), lname: req('p-lname','p-lname-err'),
+      email: emailOk('p-email','p-email-err'), dob: gv('p-dob'),
+      national_id: gv('p-natid'), phone: gv('p-phone'), gender: gv('p-gender'),
+      school: req('p-school','p-school-err'), press_role: req('p-role','p-role-err'),
+      camera_model: gv('p-camera'), english_level: req('p-english','p-english-err'),
+      health_info: gv('p-health'), motivation: req('p-motivation','p-motivation-err')
+    };
+
+  } else if (type === 'admin') {
+    appData = {...appData,
+      fname: req('a-fname','a-fname-err'), lname: req('a-lname','a-lname-err'),
+      email: emailOk('a-email','a-email-err'), dob: gv('a-dob'),
+      national_id: gv('a-natid'), phone: gv('a-phone'), gender: gv('a-gender'),
+      school: req('a-school','a-school-err'), position: req('a-position','a-position-err'),
+      english_level: req('a-english','a-english-err'),
+      health_info: gv('a-health'), motivation: req('a-motivation','a-motivation-err')
+    };
+
+  } else if (type === 'delegation') {
+    const leader = req('dl-leader','dl-leader-err');
+    const school = req('dl-school','dl-school-err');
+    const email = emailOk('dl-email','dl-email-err');
+    const phone = req('dl-phone','dl-phone-err');
+
+    // Collect delegates
+    const memberEls = document.querySelectorAll('.delegate-member');
+    if (memberEls.length < 2) { document.getElementById('dl-delegates-err').classList.add('show'); ok=false; }
+    else { document.getElementById('dl-delegates-err').classList.remove('show'); }
+
+    const members = [];
+    memberEls.forEach((el,idx) => {
+      const n = el.id.replace('dm-','');
+      members.push({
+        fname: gv(`dm${n}-fname`), lname: gv(`dm${n}-lname`),
+        email: gv(`dm${n}-email`), dob: gv(`dm${n}-dob`),
+        national_id: gv(`dm${n}-natid`), phone: gv(`dm${n}-phone`),
+        gender: gv(`dm${n}-gender`), english_level: gv(`dm${n}-english`),
+        committee_1: gv(`dm${n}-comm1`), committee_2: gv(`dm${n}-comm2`), committee_3: gv(`dm${n}-comm3`),
+        health_info: gv(`dm${n}-health`)
+      });
+      if (!gv(`dm${n}-fname`) || !gv(`dm${n}-lname`) || !gv(`dm${n}-email`) || !gv(`dm${n}-comm1`)) ok=false;
+    });
+
+    appData = {...appData,
+      fname: leader, lname: '', email, phone,
+      school, delegation_leader: leader,
+      delegation_members: JSON.stringify(members),
+      delegation_size: members.length,
+      note: gv('dl-note')
+    };
+  }
+
+  if (!ok) {
+    if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+    return;
+  }
 
   try {
     const result = await window.dbSubmitApp(appData);
     console.log('Submit result:', result);
-
-    // Başarılı — formu gizle, teşekkür mesajı göster
     document.getElementById('apply-form-fields').style.display = 'none';
     document.getElementById('success-msg').classList.add('show');
     launchConfetti();
-
   } catch (err) {
-    // Beklenmedik hata — butonu geri al, kullanıcıya bildir
-    console.error('submitForm caught error:', err);
-    btn.textContent = originalText;
-    btn.disabled = false;
-    alert(currentLang === 'tr'
-      ? 'Bir hata oluştu, lütfen tekrar dene.'
-      : 'Something went wrong, please try again.');
+    console.error('submitForm error:', err);
+    if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+    alert(currentLang === 'tr' ? 'Bir hata oluştu, lütfen tekrar dene.' : 'Something went wrong, please try again.');
   }
 }
 

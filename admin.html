@@ -226,180 +226,9 @@ tr:hover td { background: rgba(201,168,76,0.04); }
   .sidebar { display: none; }
   .main { margin-left: 0; }
 }
-
-/* TOAST NOTIFICATIONS */
-#toast-container {
-  position: fixed; bottom: 28px; right: 28px; z-index: 9999;
-  display: flex; flex-direction: column; gap: 10px; pointer-events: none;
-}
-.toast {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 20px; border-radius: 12px; min-width: 300px; max-width: 420px;
-  font-size: 13px; font-family: 'DM Sans', sans-serif;
-  backdrop-filter: blur(16px); pointer-events: auto;
-  animation: toastIn .3s cubic-bezier(.16,1,.3,1) forwards;
-  box-shadow: 0 8px 32px rgba(0,0,0,.4);
-}
-.toast.success { background: rgba(39,174,96,.18); border: 1px solid rgba(39,174,96,.4); color: #2ecc71; }
-.toast.warning { background: rgba(243,156,18,.15); border: 1px solid rgba(243,156,18,.35); color: #f39c12; }
-.toast.info    { background: rgba(0,172,193,.15);  border: 1px solid rgba(0,172,193,.35);  color: #4DD0E1; }
-.toast.error   { background: rgba(231,76,60,.15);  border: 1px solid rgba(231,76,60,.35);  color: #e74c3c; }
-.toast-close { margin-left: auto; cursor: pointer; opacity: .6; background: none; border: none; color: inherit; font-size: 16px; padding: 0 4px; }
-.toast-close:hover { opacity: 1; }
-@keyframes toastIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-@keyframes toastOut { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(8px)} }
-
-/* EMAIL STATUS in modal */
-.email-status {
-  margin-top: 12px; padding: 10px 14px; border-radius: 8px;
-  font-size: 12px; font-family: 'JetBrains Mono', monospace;
-  display: none;
-}
-.email-status.sending { background: rgba(0,172,193,.1); border: 1px solid rgba(0,172,193,.2); color: #4DD0E1; display: block; }
-.email-status.sent    { background: rgba(39,174,96,.1);  border: 1px solid rgba(39,174,96,.2);  color: #27ae60; display: block; }
-.email-status.failed  { background: rgba(231,76,60,.1);  border: 1px solid rgba(231,76,60,.2);  color: #e74c3c; display: block; }
 </style>
 
-<!-- ══════════════════════════════════════════════════════
-     📧 EMAILJS CONFIGURATION
-     ══════════════════════════════════════════════════════
-     KURULUM (3 dakika):
-     1. https://emailjs.com → ücretsiz hesap aç
-     2. Email Services → Add New Service → Gmail (kendi Gmail'in)
-        → Service ID'yi kopyala (örn: service_abc123)
-     3. Email Templates → Create New Template
-        KABUL şablonu (Template ID: template_accept):
-          Konu: BolMUN 2026 - Application Accepted 🎉
-          İçerik: (aşağıdaki HTML şablonu kullan)
-        RED şablonu (Template ID: template_reject):
-          Konu: BolMUN 2026 - Application Update
-          İçerik: (aşağıdaki HTML şablonu kullan)
-     4. Account → Public Key'i kopyala
-     5. Aşağıdaki 3 satırı güncelle, bitti!
-     ══════════════════════════════════════════════════════ -->
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script>
-  // ✏️ BU 3 SATIRI GÜNCELLE:
-  const EMAILJS_PUBLIC_KEY  = 'QnnAR9hTBwFSQTZHy';    // Account → Public Key
-  const EMAILJS_SERVICE_ID  = 'service_wglrkug';    // Email Services → Service ID
-  const EMAILJS_ACCEPT_TPL  = 'template_accept';    // Accept template ID
-  const EMAILJS_REJECT_TPL  = 'template_reject';    // Reject template ID
 
-  const emailjsConfigured = EMAILJS_PUBLIC_KEY !== 'QnnAR9hTBwFSQTZHy';
-
-  if (emailjsConfigured) {
-    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
-    console.log('%c✅ EmailJS hazır', 'color:#00ACC1;font-weight:bold');
-  } else {
-    console.warn('⚠️ EmailJS yapılandırılmadı — email gönderimi devre dışı');
-  }
-
-  window.sendStatusEmail = async function(applicant, status) {
-    if (!emailjsConfigured) {
-      console.warn('EmailJS ayarlanmadı, mail gönderilmedi');
-      return false;
-    }
-
-    const isAccepted = status === 'Accepted';
-    const templateId = isAccepted ? EMAILJS_ACCEPT_TPL : EMAILJS_REJECT_TPL;
-    const lang = applicant.lang || 'en';
-
-    // Template variables - bunlar EmailJS şablonunda {{değişken_adı}} ile kullanılır
-    const templateParams = {
-      to_email:       applicant.email,
-      to_name:        applicant.fname + ' ' + applicant.lname,
-      first_name:     applicant.fname,
-      committee:      applicant.committee || '—',
-      school:         applicant.school || '—',
-      conference_name:'BolMUN 2026',
-      conference_date:'22–24 May, 2026',
-      conference_place:'Balıkesir',
-      reply_to:       'bolmun26@gmail.com',  // ✏️ kendi mailin
-
-      // Dile göre mesaj
-      subject: isAccepted
-        ? (lang === 'tr' ? 'BolMUN 2026 - Başvurun Kabul Edildi! 🎉' : 'BolMUN 2026 - Application Accepted! 🎉')
-        : (lang === 'tr' ? 'BolMUN 2026 - Başvuru Sonucu' : 'BolMUN 2026 - Application Update'),
-
-      message: isAccepted
-        ? buildAcceptMessage(applicant, lang)
-        : buildRejectMessage(applicant, lang),
-    };
-
-    try {
-      const res = await emailjs.send(EMAILJS_SERVICE_ID, templateId, templateParams);
-      console.log('%c✅ Mail gönderildi: ' + applicant.email, 'color:#27ae60;font-weight:bold');
-      return true;
-    } catch(e) {
-      console.error('❌ Mail gönderilemedi:', e);
-      return false;
-    }
-  };
-
-  function buildAcceptMessage(a, lang) {
-    if (lang === 'tr') {
-      return `Sayın ${a.fname},
-
-BolMUN 2026 konferansına başvurun için teşekkür ederiz. Başvurunuzu büyük bir memnuniyetle kabul ettik!
-
-📋 Başvuru Detayları:
-• Komite: ${a.committee}
-• Okul: ${a.school}
-• Tarih: 22–24 Mayıs 2026
-• Yer: Balıkesir
-
-Konferans hakkında detaylı bilgi ve program yakında e-posta adresinize iletilecektir.
-
-Sizi aramızda görmekten büyük mutluluk duyacağız!
-
-Saygılarımızla,
-BolMUN 2026 Sekretaryası`;
-    }
-    return `Dear ${a.fname},
-
-Thank you for applying to BolMUN 2026. We are delighted to inform you that your application has been accepted!
-
-📋 Application Details:
-• Committee: ${a.committee}
-• School: ${a.school}
-• Date: 22–24 May, 2026
-• Venue: Balıkesir, Turkey
-
-More details about the conference schedule and logistics will be sent to you shortly.
-
-We look forward to seeing you there!
-
-Best regards,
-BolMUN 2026 Secretariat`;
-  }
-
-  function buildRejectMessage(a, lang) {
-    if (lang === 'tr') {
-      return `Sayın ${a.fname},
-
-BolMUN 2026 konferansına gösterdiğiniz ilgi için teşekkür ederiz.
-
-Maalesef bu yıl ${a.committee} komitesi için çok sayıda başvuru aldık ve tüm adayları kabul etmemiz mümkün olmadı. Başvurunuzu kabul edemeyeceğimizi bildirmek zorundayız.
-
-Bu sonucun hayal kırıklığı yaratabileceğinin farkındayız. Gelecek yıl yeniden başvurmanızı ve MUN yolculuğunuza devam etmenizi umuyoruz.
-
-Başarılar dileriz.
-
-Saygılarımızla,
-BolMUN 2026 Sekretaryası`;
-    }
-    return `Dear ${a.fname},
-
-Thank you for your interest in BolMUN 2026 and for taking the time to apply.
-
-After careful consideration, we regret to inform you that we are unable to offer you a place at this year's conference. We received a very high number of applications for the ${a.committee} committee and unfortunately could not accommodate all candidates.
-
-We hope this does not discourage you from pursuing your MUN journey, and we encourage you to apply again in the future.
-
-With kind regards,
-BolMUN 2026 Secretariat`;
-  }
-</script>
 </head>
 <body>
 
@@ -530,22 +359,6 @@ BolMUN 2026 Secretariat`;
           <div id="fb-status-detail" style="font-size:13px;color:var(--muted);line-height:1.7;"></div>
         </div>
 
-        <div class="chart-card">
-          <div class="chart-title" style="margin-bottom:16px;">Email (EmailJS)</div>
-          <div id="emailjs-status" style="font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:16px;"></div>
-          <div style="display:flex;flex-direction:column;gap:12px;">
-            <div>
-              <label class="settings-label">EmailJS Public Key</label>
-              <input class="settings-input" id="set-emailjs-key" placeholder="Mevcut: YOUR_PUBLIC_KEY">
-            </div>
-            <div>
-              <label class="settings-label">Service ID</label>
-              <input class="settings-input" id="set-emailjs-svc" placeholder="Mevcut: YOUR_SERVICE_ID">
-            </div>
-            <button class="export-btn" style="align-self:flex-start" onclick="testEmail()">📧 Test Email Gönder</button>
-            <div id="test-email-result" style="font-size:12px;color:var(--muted);display:none;"></div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -557,8 +370,8 @@ BolMUN 2026 Secretariat`;
     <div class="modal-title" id="modal-name"></div>
     <div id="modal-fields"></div>
     <div class="modal-actions">
-      <button class="modal-btn accept" id="btn-accept" onclick="handleStatusBtn('Accepted')">✓ Accept & Email</button>
-      <button class="modal-btn reject" id="btn-reject" onclick="handleStatusBtn('Rejected')">✕ Reject & Email</button>
+      <button class="modal-btn accept" onclick="setStatus('Accepted')">✓ Accept</button>
+      <button class="modal-btn reject" onclick="setStatus('Rejected')">✕ Reject</button>
       <button class="modal-btn close-btn" onclick="closeModal()">Close</button>
     </div>
   </div>
@@ -569,7 +382,7 @@ BolMUN 2026 Secretariat`;
 // AUTH
 // ════════════════════════════════════════
 // ✏️ Change username and default password here:
-const CREDS = { username: 'admin', password: 'bolluk2026' };
+const CREDS = { user: 'admin', pass: 'bolluk2026' };
 let adminPass = localStorage.getItem('bm_pass') || CREDS.pass;
 let maxDelegates = parseInt(localStorage.getItem('bm_max') || '120');
 
@@ -615,17 +428,6 @@ async function initApp() {
   const banner = document.getElementById('fb-banner');
   const liveInd = document.getElementById('live-indicator');
   const statusDetail = document.getElementById('fb-status-detail');
-
-  // Show EmailJS status in settings
-  const ejStatus = document.getElementById('emailjs-status');
-  if (ejStatus) {
-    if (window.emailjsConfigured) {
-      ejStatus.innerHTML = '✅ EmailJS yapılandırıldı — kabul/red butonları otomatik mail gönderir.';
-      ejStatus.style.color = 'var(--green)';
-    } else {
-      ejStatus.innerHTML = '⚠️ EmailJS henüz yapılandırılmadı.<br>admin.html dosyasının <code>EMAILJS_PUBLIC_KEY</code>, <code>EMAILJS_SERVICE_ID</code> değerlerini güncelle.<br><a href="https://emailjs.com" target="_blank" style="color:var(--teal)">emailjs.com</a> → ücretsiz hesap → 200 mail/ay';
-    }
-  }
 
   if (window.isDbConfigured) {
     banner.className = 'firebase-banner live';
@@ -828,22 +630,8 @@ function closeModal() {
   currentModalId = null;
 }
 
-async function handleStatusBtn(status) {
-  const btnId = status === 'Accepted' ? 'btn-accept' : 'btn-reject';
-  const btn = document.getElementById(btnId);
-  const original = btn ? btn.textContent : '';
-  if (btn) { btn.textContent = 'Sending...'; btn.disabled = true; }
-  await setStatus(status);
-  if (btn) { btn.textContent = original; btn.disabled = false; }
-}
-
 async function setStatus(status) {
   if (!currentModalId) return;
-
-  // Find applicant data BEFORE closing modal
-  const applicant = allApps.find(a => String(a.id) === String(currentModalId));
-
-  // Update database
   if (usingFirebase) {
     await window.dbUpdateStatus(currentModalId, status);
     await refreshFromSupabase();
@@ -854,24 +642,7 @@ async function setStatus(status) {
     allApps = apps;
     renderAll();
   }
-
   closeModal();
-
-  // Send email notification
-  if (applicant && applicant.email) {
-    showToast('📧 Mail gönderiliyor...', 'info');
-    const sent = await window.sendStatusEmail(applicant, status);
-    if (sent) {
-      showToast(
-        status === 'Accepted'
-          ? '✅ Kabul maili gönderildi: ' + applicant.email
-          : '✅ Red maili gönderildi: ' + applicant.email,
-        'success'
-      );
-    } else {
-      showToast('⚠️ Mail gönderilemedi — EmailJS ayarlarını kontrol et', 'warning');
-    }
-  }
 }
 
 async function deleteApp(id) {
@@ -927,47 +698,7 @@ function changePass() {
   document.getElementById('new-pass2').value = '';
 }
 
-// ════════════════════════════════════════
-// TOAST NOTIFICATIONS
-// ════════════════════════════════════════
-function showToast(message, type = 'info', duration = 4000) {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = 'toast ' + type;
-  toast.innerHTML = '<span style="flex:1">' + message + '</span><button class="toast-close" onclick="this.parentElement.remove()">✕</button>';
-  container.appendChild(toast);
-  setTimeout(() => {
-    toast.style.animation = 'toastOut .3s ease forwards';
-    setTimeout(() => toast.remove(), 300);
-  }, duration);
-}
 
-
-// ════════════════════════════════════════
-// TEST EMAIL
-// ════════════════════════════════════════
-async function testEmail() {
-  const resultEl = document.getElementById('test-email-result');
-  if (!window.emailjsConfigured) {
-    if (resultEl) { resultEl.style.display='block'; resultEl.style.color='#f39c12'; resultEl.textContent = 'EmailJS yapılandırılmadı — once PUBLIC_KEY ve SERVICE_ID gir.'; }
-    return;
-  }
-  if (resultEl) { resultEl.style.display='block'; resultEl.style.color='var(--muted)'; resultEl.textContent = 'Gonderiliyor...'; }
-  showToast('Test maili gonderiliyor...', 'info');
-  const fakeApp = {
-    fname: 'Test', lname: 'Admin', email: 'test@example.com',
-    committee: 'UNSC', school: 'Test School', lang: 'tr'
-  };
-  const ok = await window.sendStatusEmail(fakeApp, 'Accepted');
-  if (resultEl) {
-    resultEl.style.color = ok ? 'var(--green)' : 'var(--red)';
-    resultEl.textContent = ok ? '✓ Test maili gonderildi!' : '✗ Gonderilemedi — console'a bak (F12)';
-  }
-  showToast(ok ? 'Test maili gonderildi!' : 'Test maili gonderilemedi', ok ? 'success' : 'error');
-}
 </script>
-
-<!-- TOAST CONTAINER -->
-<div id="toast-container"></div>
 </body>
 </html>

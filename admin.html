@@ -411,7 +411,7 @@ tr:hover td { background: rgba(201,168,76,0.04); }
 // AUTH
 // ════════════════════════════════════════
 // ✏️ Change username and default password here:
-const CREDS = { user: 'admin', pass: '1' };
+const CREDS = { user: 'admin', pass: 'bolluk2026' };
 let adminPass = localStorage.getItem('bm_pass') || CREDS.pass;
 let maxDelegates = parseInt(localStorage.getItem('bm_max') || '120');
 
@@ -690,36 +690,52 @@ function renderChairsPage() {
 }
 
 // ════════════════════════════════════════
-// EMAIL SENDING — Supabase Edge Function + Resend
+// EMAIL SENDING — EmailJS (Client-side, no backend!)
 // ════════════════════════════════════════
+// KURULUM (1 dakika):
+//   1. emailjs.com → ücretsiz kayıt
+//   2. Email Services → Gmail veya SMTP ekle → SERVICE_ID al
+//   3. Email Templates → 2 şablon oluştur (accept + reject) → TEMPLATE_ID al
+//   4. Account → Public Key → PUBLIC_KEY al
+//   5. Aşağıdaki 3 satırı güncelle ✏️
+// ══════════════════════════════════════════
+
+const EMAILJS_PUBLIC_KEY  = 'QnnAR9hTBwFSQTZHy';     // ✏️
+const EMAILJS_SERVICE_ID  = 'service_wglrkug';     // ✏️
+const EMAILJS_TEMPLATE_ACCEPT = 'template_accept'; // ✏️
+const EMAILJS_TEMPLATE_REJECT = 'template_reject'; // ✏️
+
+// EmailJS'yi başlat
+(function() {
+  const s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+  s.onload = () => { emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY }); console.log('%c✅ EmailJS hazır', 'color:#00ACC1;font-weight:bold'); };
+  document.head.appendChild(s);
+})();
+
 async function sendStatusEmail(app, status) {
-  // Bu fonksiyon Supabase Edge Function'a istek atar.
-  // Edge Function'ın URL'sini kendi proje URL'nizle güncelleyin.
-  const EDGE_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/send-bolmun-email`;
+  if (!app || !app.email) return;
+
+  const typeLabel = { delegate:'Delege', delegation:'Delegasyon', press:'Basın', admin:'Admin Ekibi', chair:'Chairboard' };
+  const templateParams = {
+    to_email:   app.email,
+    to_name:    `${app.fname || ''} ${app.lname || ''}`.trim(),
+    type_label: typeLabel[app.type] || app.type || 'Delege',
+    committee:  app.committee_1 || app.position || app.press_role || '—',
+    school:     app.school || '—',
+    conf_date:  '22–24 Mayıs 2026',
+    conf_venue: 'Gülser Mehmet Bolluk Anadolu Lisesi, Balıkesir',
+    instagram:  '@bolmun26'
+  };
+
+  const templateId = status === 'Accepted' ? EMAILJS_TEMPLATE_ACCEPT : EMAILJS_TEMPLATE_REJECT;
+
   try {
-    const res = await fetch(EDGE_FUNCTION_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_KEY}`
-      },
-      body: JSON.stringify({
-        to: app.email,
-        name: `${app.fname} ${app.lname}`,
-        status: status,
-        type: app.type || 'delegate',
-        committee: app.committee_1 || app.position || app.press_role || '—',
-        school: app.school || ''
-      })
-    });
-    if (res.ok) {
-      console.log(`%c✅ Email gönderildi: ${app.email}`, 'color:#27ae60;font-weight:bold');
-    } else {
-      const txt = await res.text();
-      console.error('❌ Email gönderilemedi:', res.status, txt);
-    }
-  } catch(e) {
-    console.error('❌ Email bağlantı hatası:', e.message);
+    if (typeof emailjs === 'undefined') { console.warn('⚠️ EmailJS henüz yüklenmedi'); return; }
+    await emailjs.send(EMAILJS_SERVICE_ID, templateId, templateParams);
+    console.log(`%c✅ Email gönderildi → ${app.email}`, 'color:#27ae60;font-weight:bold');
+  } catch(err) {
+    console.error('❌ Email gönderilemedi:', err);
   }
 }
 
